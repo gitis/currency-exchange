@@ -1,6 +1,6 @@
 {
     "name": "gytis/currency",
-    "description": "",
+    "description": "Currency exchange package for laravel",
     "authors": [
         {
             "name": "Gytis Semenas",
@@ -14,9 +14,13 @@
     "require-dev": {
         "phpspec/phpspec": "2.0.*@dev"
     },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    },
     "autoload": {
         "classmap": [
-            "src/migrations"
         ],
         "psr-0": {
             "Gytis\\Currency\\": "src/"
