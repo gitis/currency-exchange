@@ -25,9 +25,9 @@ class OpenExchangeRateProvider implements RateProviderInterface{
     /**
      * Fetches and saves to cache json data
      *
+     * @param $url
      * @param $duration
      * @return mixed
-     *
      */
     private function fetchAndSaveJsonData($url,$duration){
         return Cache::remember($this->getName(), $duration, function() use ($url){

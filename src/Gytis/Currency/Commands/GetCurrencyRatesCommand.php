@@ -34,9 +34,11 @@ class GetCurrencyRatesCommand extends Command {
      * @var CommandValidator
      */
     protected $commandValidator;
+
     /**
      * Create a new command instance.
-     *
+     * @param CurrencyExchange $currencyExchange
+     * @param CommandValidator $commandValidator
      */
 	public function __construct(CurrencyExchange $currencyExchange, CommandValidator $commandValidator)
 	{

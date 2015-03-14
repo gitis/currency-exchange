@@ -34,6 +34,7 @@ class GetBestCurrencyRateCommand extends Command {
 
     /**
      * @param CurrencyExchange $currencyExchange
+     * @param CommandValidator $commandValidator
      */
     public function __construct(CurrencyExchange $currencyExchange, CommandValidator $commandValidator)
 	{

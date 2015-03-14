@@ -24,7 +24,7 @@ class GoogleProvider implements RateProviderInterface{
             return $rates;
         });
 
-        return array_get($rates, 'rate', 0);;
+        return array_get($rates, 'rate', 0);
     }
 
     /**

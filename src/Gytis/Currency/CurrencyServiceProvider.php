@@ -3,7 +3,7 @@
 use Gytis\Currency\Commands\GetBestCurrencyRateCommand;
 use Gytis\Currency\Commands\GetCurrencyRatesCommand;
 use Gytis\Currency\Validators\CommandValidator;
-use Illuminate\Foundation\AliasLoader;
+
 use Illuminate\Support\ServiceProvider;
 
 class CurrencyServiceProvider extends ServiceProvider {
