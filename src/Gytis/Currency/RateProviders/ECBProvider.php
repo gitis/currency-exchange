@@ -39,7 +39,7 @@ class ECBProvider implements RateProviderInterface{
 
         if($baseCurrency == 'EUR'){
             foreach($XML->Cube->Cube->Cube as $rate){
-                if($rate['currency'] == $compCurrency) return $rate['rate'];
+                if($rate['currency'] == $compCurrency) return (float)$rate['rate'];
             }
             return 0;
         }else{

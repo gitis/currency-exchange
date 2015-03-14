@@ -12,8 +12,9 @@ class GoogleProvider implements RateProviderInterface{
      */
     public function getRate($baseCurrency, $compCurrency)
     {
-        $rates = Cache::remember($this->getName(), Config::get('currency::cache_duration'), function() use ($baseCurrency, $compCurrency){
-            $url = 'http://rate-exchange.appspot.com/currency?from=' . $baseCurrency . '&to=' . $compCurrency . '&q=1}';
+        $rates = Cache::remember($baseCurrency.$compCurrency, Config::get('currency::cache_duration'), function() use ($baseCurrency, $compCurrency){
+            $url = 'http://rate-exchange.appspot.com/currency?from=' . $baseCurrency . '&to=' . $compCurrency . '&q=1';
+
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
             $json_result = curl_exec($ch);

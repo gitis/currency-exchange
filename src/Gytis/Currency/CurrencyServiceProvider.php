@@ -4,6 +4,7 @@ use Gytis\Currency\Commands\GetBestCurrencyRateCommand;
 use Gytis\Currency\Commands\GetCurrencyRatesCommand;
 use Gytis\Currency\Validators\CommandValidator;
 
+use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\ServiceProvider;
 
 class CurrencyServiceProvider extends ServiceProvider {
@@ -23,6 +24,9 @@ class CurrencyServiceProvider extends ServiceProvider {
 	public function boot()
 	{
 		$this->package('gytis/currency');
+
+        $loader = AliasLoader::getInstance();
+        $loader->alias('CurrencyProvider', 'Gytis\Currency\Facades\CurrencyProvider');
 
         $this->commands([
             'currency:rates',
