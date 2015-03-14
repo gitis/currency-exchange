@@ -1,6 +1,7 @@
 <?php namespace Gytis\Currency\RateProviders;
 
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 
 class GoogleProvider implements RateProviderInterface{
 
