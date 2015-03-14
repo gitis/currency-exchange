@@ -1,0 +1,26 @@
+{
+    "name": "gytis/currency",
+    "description": "",
+    "authors": [
+        {
+            "name": "Gytis Semenas",
+            "email": "gytis@semenas.lt"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "illuminate/support": "4.2.*"
+    },
+    "require-dev": {
+        "phpspec/phpspec": "2.0.*@dev"
+    },
+    "autoload": {
+        "classmap": [
+            "src/migrations"
+        ],
+        "psr-0": {
+            "Gytis\\Currency\\": "src/"
+        }
+    },
+    "minimum-stability": "stable"
+}
