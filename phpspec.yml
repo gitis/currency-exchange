@@ -2,4 +2,4 @@ suites:
   gytis_suite:
     namespace: Gytis
     src_path: src
-    spec_prefix: spec
+    spec_prefix: tests

@@ -46,7 +46,7 @@ class CurrencyServiceProvider extends ServiceProvider {
         });
 
         $this->app->bindShared('CurrencyExchange', function(){
-            return new CurrencyExchange(\App::make('RateProviderManager'));
+            return new CurrencyExchange(\App::make('RateProviderManager'), \App::make('Illuminate\Config\Repository'));
         });
 
         $this->app->bindShared('CommandValidator', function() {
