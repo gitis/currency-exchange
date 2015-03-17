@@ -33,9 +33,8 @@ class ECBProvider implements RateProviderInterface{
         });
 
         $rates = $this->parseResults($results);
-
         if($baseCurrency == 'EUR'){
-            array_get($rates, $compCurrency, 0);
+            return array_get($rates, $compCurrency, 0);
         }else{
             $cur1 = array_get($rates, $baseCurrency, 0);
             $cur2 = array_get($rates, $compCurrency, 0);
@@ -46,12 +45,10 @@ class ECBProvider implements RateProviderInterface{
                 return 0;
             }
         }
-        return 0;
     }
 
     private function parseResults($results){
         $parsedArray = array();
-
         foreach(array_get($results,'Cube.Cube.Cube') as $results){
             $parsedLine = array_get($results,'@attributes');
             $parsedArray[$parsedLine['currency']] = (float)$parsedLine['rate'];
