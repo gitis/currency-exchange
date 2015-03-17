@@ -1,32 +1,25 @@
 <?php namespace Gytis\Currency\RateProviders;
 
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Config;
+use Gytis\Currency\DataFetchers\DataFetcherInterface;
+use Illuminate\Cache\Repository as Cache;
+use Illuminate\Config\Repository as Config;
 
 class ECBProvider implements RateProviderInterface{
 
-    /**
-     * Fetches and save to cache xml element provided by url
-     *
-     * @param $url
-     * @param $duration
-     * @return \SimpleXMLElement
-     */
-    private function fetchAndSaveXmlData($url, $duration = 60){
+    private static $URL = 'http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml';
 
-        $XMLstring = Cache::remember($this->getName(),$duration,function() use ($url){
-            //SimpleXMLElement object cannot be serialized, so we serialize it as a string instead.
-            $content = simplexml_load_file($url);
+    protected $config;
+    protected $cache;
+    protected $dataFetcher;
 
-            if($content === FALSE) throw new \Exception('Error parsing data from ' . $this->getName());
-
-            return $content->asXML();
-        });
-
-        $XML = simplexml_load_string($XMLstring);
-        return $XML;
+    function __construct(Config $config,
+                         Cache $cache,
+                         DataFetcherInterface $dataFetcher)
+    {
+        $this->config = $config;
+        $this->cache = $cache;
+        $this->dataFetcher = $dataFetcher;
     }
-
 
     /**
      * @param string $baseCurrency
@@ -35,29 +28,36 @@ class ECBProvider implements RateProviderInterface{
      */
     public function getRate($baseCurrency, $compCurrency)
     {
-        $XML = $this->fetchAndSaveXmlData('http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml', Config::get('currency::cache_duration'));
+        $results = $this->cache->remember($this->getName(), $this->config->get('currency::cache_duration'), function(){
+            return $this->dataFetcher->getAssocArray(static::$URL);
+        });
+
+        $rates = $this->parseResults($results);
 
         if($baseCurrency == 'EUR'){
-            foreach($XML->Cube->Cube->Cube as $rate){
-                if($rate['currency'] == $compCurrency) return (float)$rate['rate'];
-            }
-            return 0;
+            array_get($rates, $compCurrency, 0);
         }else{
-            $compCurrencyRate = NULL;
-            $baseCurrencyRate = NULL;
+            $cur1 = array_get($rates, $baseCurrency, 0);
+            $cur2 = array_get($rates, $compCurrency, 0);
 
-            foreach($XML->Cube->Cube->Cube as $rate){
-                if($rate['currency'] == $compCurrency) $compCurrencyRate = $rate['rate'];
-                if($rate['currency'] == $baseCurrency) $baseCurrencyRate = $rate['rate'];
-
-
-                if(isset($compCurrencyRate) && isset($baseCurrencyRate)){
-                    //we now have all data and can return calculated result
-                    return (float)$compCurrencyRate / (float)$baseCurrencyRate;
-                }
+            if($cur1 > 0 && $cur2 > 0){
+                return $cur2 / $cur1;
+            }else{
+                return 0;
             }
-            return 0;
         }
+        return 0;
+    }
+
+    private function parseResults($results){
+        $parsedArray = array();
+
+        foreach(array_get($results,'Cube.Cube.Cube') as $results){
+            $parsedLine = array_get($results,'@attributes');
+            $parsedArray[$parsedLine['currency']] = (float)$parsedLine['rate'];
+        }
+
+        return $parsedArray;
     }
 
     /**

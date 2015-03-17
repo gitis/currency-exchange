@@ -1,48 +1,37 @@
 <?php namespace Gytis\Currency\RateProviders;
 
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Config;
+use Gytis\Currency\DataFetchers\DataFetcherInterface;
+use Illuminate\Cache\Repository as Cache;
+use Illuminate\Config\Repository as Config;
 
 class OpenExchangeRateProvider implements RateProviderInterface{
 
     /**
-     * @var string
+     * @var Config
      */
-    protected static $BASE_URL = 'http://openexchangerates.org/api/latest.json';
-
+    protected  $config;
     /**
-     * @var string
+     * @var Cache
      */
-    protected $appID;
-
+    protected $cache;
     /**
-     * @param $appID
+     * @var DataFetcherInterface
      */
-    function __construct($appID)
+    protected $dataFetcherInterface;
+    /**
+     * @var OpenExchangeRateUrlBuilder
+     */
+    protected $urlBuilder;
+
+    function __construct(Config $config,
+                         Cache $cache,
+                         DataFetcherInterface $dataFetcher,
+                         OpenExchangeRateUrlBuilder $urlBuilder)
     {
-        $this->appID = $appID;
-    }
-
-    /**
-     * Fetches and saves to cache json data
-     *
-     * @param $url
-     * @param $duration
-     * @return mixed
-     */
-    private function fetchAndSaveJsonData($url,$duration){
-        return Cache::remember($this->getName(), $duration, function() use ($url){
-
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
-            $json_result = curl_exec($ch);
-            curl_close($ch);
-
-            $rates = json_decode($json_result,true);
-            if($rates === null) throw new \Exception('Received invalid JSON from ' . $this->getName());
-
-            return $rates;
-        });
+        $this->config = $config;
+        $this->cache = $cache;
+        $this->dataFetcher = $dataFetcher;
+        $this->urlBuilder = $urlBuilder;
     }
 
     /**
@@ -52,21 +41,24 @@ class OpenExchangeRateProvider implements RateProviderInterface{
      */
     public function getRate($baseCurrency, $compCurrency)
     {
-        $rates = $this->fetchAndSaveJsonData(OpenExchangeRateProvider::$BASE_URL . '?app_id=' . $this->appID, Config::get('currency::cache_duration'));
+        $url = $this->urlBuilder->make((string)$this->config->get('currency::oer_app_id'));
 
-            if($baseCurrency == 'USD'){
-                return array_get($rates, 'rates.'.$compCurrency, 0);
+        $rates = $this->cache->remember($this->getName(), $this->config->get('currency::cache_duration'), function() use ($url){
+            return $this->dataFetcher->getAssocArray($url);
+        });
 
+        if($baseCurrency == 'USD'){
+            return array_get($rates, 'rates.'.$compCurrency, 0);
+        }else{
+            $cur1 = array_get($rates, 'rates.'.$baseCurrency, 0);
+            $cur2 = array_get($rates, 'rates.'.$compCurrency, 0);
+
+            if($cur1 > 0 && $cur2 > 0){
+                return $cur2 / $cur1;
             }else{
-                $cur1 = array_get($rates, 'rates.'.$baseCurrency, 0);
-                $cur2 = array_get($rates, 'rates.'.$compCurrency, 0);
-
-                if($cur1 > 0 && $cur2 > 0){
-                    return $cur2 / $cur1;
-                }else{
-                    return 0;
-                }
+                return 0;
             }
+        }
     }
 
     /**

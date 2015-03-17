@@ -1,32 +1,57 @@
 <?php namespace Gytis\Currency\RateProviders;
 
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Config;
+use Gytis\Currency\DataFetchers\DataFetcherInterface;
+use Illuminate\Cache\Repository as Cache;
+use Illuminate\Config\Repository as Config;
 
 class GoogleProvider implements RateProviderInterface{
 
     /**
+     * @var Config
+     */
+    protected  $config;
+    /**
+     * @var Cache
+     */
+    protected $cache;
+    /**
+     * @var DataFetcherInterface
+     */
+    protected $dataFetcher;
+    /**
+     * @var GoogleUrlBuilder
+     */
+    protected $urlBuilder;
+
+
+    function __construct(Config $config,
+                         Cache $cache,
+                         DataFetcherInterface $dataFetcher,
+                         GoogleUrlBuilder $urlBuilder)
+    {
+        $this->config = $config;
+        $this->cache = $cache;
+        $this->dataFetcher = $dataFetcher;
+        $this->urlBuilder = $urlBuilder;
+    }
+
+    /**
+     * Returns exchange rate for provided currencies and saves it to cache.
+     * default to 0 if requested currency is not found
+     *
      * @param string $baseCurrency
      * @param string $compCurrency
      * @return double
      */
     public function getRate($baseCurrency, $compCurrency)
     {
-        $rates = Cache::remember($baseCurrency.$compCurrency, Config::get('currency::cache_duration'), function() use ($baseCurrency, $compCurrency){
-            $url = 'http://rate-exchange.appspot.com/currency?from=' . $baseCurrency . '&to=' . $compCurrency . '&q=1';
+        $url = $this->urlBuilder->make($baseCurrency,$compCurrency);
 
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
-            $json_result = curl_exec($ch);
-            curl_close($ch);
-
-            $rates = json_decode($json_result,true);
-            if($rates === null) throw new \Exception('Received invalid JSON from ' . $this->getName());
-
-            return $rates;
+        $rates = $this->cache->remember((string)$baseCurrency.(string)$compCurrency.$this->getName(), $this->config->get('currency::cache_duration'), function() use ($url){
+            return $this->dataFetcher->getAssocArray($url);
         });
 
-        return array_get($rates, 'rate', 0);
+        return array_get($rates, 'rate', 0); //defaults to 0 if requested currency is not found
     }
 
     /**

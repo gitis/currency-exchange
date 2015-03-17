@@ -34,16 +34,24 @@ class GetCurrencyRatesCommand extends Command {
      * @var CommandValidator
      */
     protected $commandValidator;
+    /**
+     * @var CommandFormatter
+     */
+    protected $commandFormatter;
 
     /**
      * Create a new command instance.
      * @param CurrencyExchange $currencyExchange
      * @param CommandValidator $commandValidator
+     * @param CommandFormatter $commandFormatter
      */
-	public function __construct(CurrencyExchange $currencyExchange, CommandValidator $commandValidator)
+	public function __construct(CurrencyExchange $currencyExchange,
+                                CommandValidator $commandValidator,
+                                CommandFormatter $commandFormatter)
 	{
         $this->currencyExchange = $currencyExchange;
         $this->commandValidator = $commandValidator;
+        $this->commandFormatter = $commandFormatter;
         parent::__construct();
     }
 
@@ -61,16 +69,14 @@ class GetCurrencyRatesCommand extends Command {
 
         if(!$this->commandValidator->validate(compact('baseCurrency','compCurrency')))
         {
-            $this->error('Invalid input. ' . (string)$this->commandValidator->errors->first());
+            $this->error($this->commandFormatter->createErrorMessage($this->commandValidator->errors->first()));
             return;
         }
 
         $rates = $this->currencyExchange->getCurrencyRates($baseCurrency, $compCurrency);
 
-        if(!empty($rates)){
-            foreach($rates as $exchange => $rate){
-                $this->info($baseCurrency . ' to ' . $compCurrency . ' = ' . $rate . ' @ ' . @$exchange);
-            }
+        foreach($rates as $exchange => $rate){
+            $this->info($this->commandFormatter->createRateInfoMessage($baseCurrency, $compCurrency, $rate, $exchange));
         }
 	}
 

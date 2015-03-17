@@ -26,7 +26,7 @@ class RateProviderManager extends Manager{
      */
     public function createEcbDriver()
     {
-        return new ECBProvider();
+        return \App::make('ECBProvider');
     }
 
     /**
@@ -36,7 +36,7 @@ class RateProviderManager extends Manager{
      */
     public function createOerDriver()
     {
-        return new OpenExchangeRateProvider(Config::get('currency::oer_app_id'));
+        return \App::make('OpenExchangeRateProvider');
     }
 
     /**
@@ -46,7 +46,7 @@ class RateProviderManager extends Manager{
      */
     public function createGoogleDriver()
     {
-        return new GoogleProvider();
+        return \App::make('GoogleProvider');
     }
 }
 

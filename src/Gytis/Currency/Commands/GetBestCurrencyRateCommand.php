@@ -30,16 +30,25 @@ class GetBestCurrencyRateCommand extends Command {
      * @var CommandValidator
      */
     protected $commandValidator;
+    /**
+     * @var CommandFormatter
+     */
+    protected $commandFormatter;
 
 
     /**
      * @param CurrencyExchange $currencyExchange
      * @param CommandValidator $commandValidator
+     * @param CommandFormatter $commandFormatter
      */
-    public function __construct(CurrencyExchange $currencyExchange, CommandValidator $commandValidator)
+    public function __construct(CurrencyExchange $currencyExchange,
+                                CommandValidator $commandValidator,
+                                CommandFormatter $commandFormatter)
 	{
         $this->currencyExchange = $currencyExchange;
         $this->commandValidator = $commandValidator;
+        $this->commandFormatter = $commandFormatter;
+
         parent::__construct();
     }
 
@@ -57,13 +66,13 @@ class GetBestCurrencyRateCommand extends Command {
 
         if(!$this->commandValidator->validate(compact('baseCurrency','compCurrency')))
         {
-            $this->error('Invalid input. ' . (string)$this->commandValidator->errors->first());
+            $this->error($this->commandFormatter->createErrorMessage($this->commandValidator->errors->first()));
             return;
         }
 
         $bestProvider = $this->currencyExchange->getBestRateProvider($baseCurrency, $compCurrency);
 
-        $this->info('Best rate for ' . $baseCurrency . ' to ' . $compCurrency . ' = ' . $bestProvider->getRate($baseCurrency,$compCurrency) . ' @ ' . $bestProvider->getName());
+        $this->info($this->commandFormatter->createBestRateMessage($baseCurrency,$compCurrency,$bestProvider->getRate($baseCurrency,$compCurrency),$bestProvider->getName()));
     }
 
 	/**
