@@ -49,15 +49,17 @@ class OpenExchangeRateProvider implements RateProviderInterface{
 
         if($baseCurrency == 'USD'){
             return array_get($rates, 'rates.'.$compCurrency, 0);
+        }else if ($compCurrency == 'USD'){
+            return 1 / (float) array_get($rates, 'rates.'.$baseCurrency, 0);
         }else{
-            $cur1 = array_get($rates, 'rates.'.$baseCurrency, 0);
-            $cur2 = array_get($rates, 'rates.'.$compCurrency, 0);
+                $cur1 = array_get($rates, 'rates.'.$baseCurrency, 0);
+                $cur2 = array_get($rates, 'rates.'.$compCurrency, 0);
 
-            if($cur1 > 0 && $cur2 > 0){
-                return $cur2 / $cur1;
-            }else{
-                return 0;
-            }
+                if($cur1 > 0 && $cur2 > 0){
+                    return $cur2 / $cur1;
+                }else{
+                    return 0;
+                }
         }
     }
 

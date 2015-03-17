@@ -35,6 +35,8 @@ class ECBProvider implements RateProviderInterface{
         $rates = $this->parseResults($results);
         if($baseCurrency == 'EUR'){
             return array_get($rates, $compCurrency, 0);
+        }else if($compCurrency == 'EUR') {
+            return 1 / (float)array_get($rates, $baseCurrency, 0);
         }else{
             $cur1 = array_get($rates, $baseCurrency, 0);
             $cur2 = array_get($rates, $compCurrency, 0);
